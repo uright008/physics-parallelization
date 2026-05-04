@@ -10,7 +10,7 @@ public final class PhysicsParallelConfig extends ParallelConfig {
     private volatile boolean enabled;
 
     private PhysicsParallelConfig() {
-        super("physics-parallelization.json");
+        super("physics-parallelization");
         reload();
     }
 
