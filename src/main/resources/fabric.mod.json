@@ -1,0 +1,27 @@
+{
+	"schemaVersion": 1,
+	"id": "physics-parallelization",
+	"version": "${version}",
+	"name": "Physics Parallelization",
+	"description": "Parallelizes Minecraft entity physics (motion, fluid pushing, block collision) for improved server TPS. Use /parallel physics to control.",
+	"authors": [
+		"uright008"
+	],
+	"license": "MIT",
+	"environment": "server",
+	"entrypoints": {
+		"main": [
+			"io.github.uright008.pp.PhysicsParallelization"
+		]
+	},
+	"mixins": [
+		"physics-parallelization.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.19.2",
+		"minecraft": "~26.1.2",
+		"java": ">=25",
+		"fabric-api": "*",
+		"parallel-core": "*"
+	}
+}
