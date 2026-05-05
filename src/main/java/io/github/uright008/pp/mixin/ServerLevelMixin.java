@@ -69,7 +69,6 @@ public abstract class ServerLevelMixin {
         EntityGrid grid = new EntityGrid(allEntities);
 
         SafeLevelAccess.enterSafeZone();
-        EntityGridManager.setActiveGrid(grid);
         try {
             for (Entity entity : allEntities) {
                 if (!(entity instanceof Mob)) {
@@ -77,47 +76,51 @@ public abstract class ServerLevelMixin {
                 }
             }
 
-            ExecutorService pool = ParallelThreadPool.getPool("Physics");
-            int workers = Math.max(1, Math.min(mobCount, ParallelThreadPool.getParallelism()));
-            int batchSize = (mobCount + workers - 1) / workers;
+            EntityGridManager.setActiveGrid(grid);
+            try {
+                ExecutorService pool = ParallelThreadPool.getPool("Physics");
+                int workers = Math.max(1, Math.min(mobCount, ParallelThreadPool.getParallelism()));
+                int batchSize = (mobCount + workers - 1) / workers;
 
-            List<CompletableFuture<Void>> futures = new ArrayList<>(workers);
+                List<CompletableFuture<Void>> futures = new ArrayList<>(workers);
 
-            for (int w = 0; w < workers - 1; w++) {
-                final int from = w * batchSize;
-                final int to = Math.min(from + batchSize, mobCount);
-                if (from >= to) break;
+                for (int w = 0; w < workers - 1; w++) {
+                    final int from = w * batchSize;
+                    final int to = Math.min(from + batchSize, mobCount);
+                    if (from >= to) break;
 
-                futures.add(CompletableFuture.runAsync(() -> {
-                    SafeLevelAccess.enterSafeZone();
-                    try {
-                        for (int i = from; i < to; i++) {
-                            Entity entity = mobEntities.get(i);
-                            try {
-                                entityConsumer.accept(entity);
-                            } catch (Exception e) {
-                                PhysicsParallelization.LOGGER.error(
-                                        "Error ticking entity {} in parallel worker",
-                                        entity, e);
+                    futures.add(CompletableFuture.runAsync(() -> {
+                        SafeLevelAccess.enterSafeZone();
+                        try {
+                            for (int i = from; i < to; i++) {
+                                Entity entity = mobEntities.get(i);
+                                try {
+                                    entityConsumer.accept(entity);
+                                } catch (Exception e) {
+                                    PhysicsParallelization.LOGGER.error(
+                                            "Error ticking entity {} in parallel worker",
+                                            entity, e);
+                                }
                             }
+                        } finally {
+                            SafeLevelAccess.leaveSafeZone();
                         }
-                    } finally {
-                        SafeLevelAccess.leaveSafeZone();
-                    }
-                }, pool));
-            }
+                    }, pool));
+                }
 
-            int mainFrom = (workers - 1) * batchSize;
-            int mainTo = Math.min(mainFrom + batchSize, mobCount);
-            for (int i = mainFrom; i < mainTo; i++) {
-                entityConsumer.accept(mobEntities.get(i));
-            }
+                int mainFrom = (workers - 1) * batchSize;
+                int mainTo = Math.min(mainFrom + batchSize, mobCount);
+                for (int i = mainFrom; i < mainTo; i++) {
+                    entityConsumer.accept(mobEntities.get(i));
+                }
 
-            for (CompletableFuture<Void> f : futures) {
-                f.join();
+                for (CompletableFuture<Void> f : futures) {
+                    f.join();
+                }
+            } finally {
+                EntityGridManager.setActiveGrid(null);
             }
         } finally {
-            EntityGridManager.setActiveGrid(null);
             SafeLevelAccess.leaveSafeZone();
         }
     }
