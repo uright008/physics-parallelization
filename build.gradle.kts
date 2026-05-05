@@ -24,7 +24,7 @@ dependencies {
     // parallel-core (local: publishToMavenLocal first)
     implementation("io.github.uright008.pc:parallel-core:${providers.gradleProperty("parallel_core_version").get()}")
     implementation("net.fabricmc:fabric-loader:${providers.gradleProperty("loader_version").get()}")
-    implementation("net.fabricmc.fabric-api:fabric-api:${providers.gradleProperty("fabric_api_version").get()}")
+    implementation("net.fabricmc.fabric-api:fabric-api:${providers.gradleProperty("fabric_api_version").orElse("0.148.0+26.1.2").get()}")
 }
 
 tasks.processResources {
