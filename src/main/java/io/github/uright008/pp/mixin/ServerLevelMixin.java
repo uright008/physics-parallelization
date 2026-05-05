@@ -72,7 +72,7 @@ public abstract class ServerLevelMixin {
             }
 
             // Phase 2: parallel tick heavy entities (grid provides consistent snapshot)
-            ExecutorService pool = ParallelThreadPool.getPool();
+            ExecutorService pool = ParallelThreadPool.getPool("Physics");
             int workers = Math.max(1, Math.min(heavyCount, ParallelThreadPool.getParallelism()));
             int batchSize = (heavyCount + workers - 1) / workers;
 
