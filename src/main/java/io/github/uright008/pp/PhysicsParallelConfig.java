@@ -12,7 +12,7 @@ public final class PhysicsParallelConfig extends ParallelConfig {
     private volatile boolean lightEntitiesParallel;
 
     private PhysicsParallelConfig() {
-        super("physics-parallelization.json");
+        super("physics-parallelization");
         reload();
     }
 
