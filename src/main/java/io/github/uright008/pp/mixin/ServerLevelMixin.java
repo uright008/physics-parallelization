@@ -6,6 +6,7 @@ import io.github.uright008.pc.ParallelThreadPool;
 import io.github.uright008.pc.SafeLevelAccess;
 import io.github.uright008.pp.PhysicsParallelConfig;
 import io.github.uright008.pp.PhysicsParallelization;
+import net.minecraft.core.SectionPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
@@ -30,79 +31,94 @@ public abstract class ServerLevelMixin {
                     target = "Lnet/minecraft/world/level/entity/EntityTickList;forEach(Ljava/util/function/Consumer;)V"
             )
     )
-    private void physicsParallel$redirectEntityTick(EntityTickList tickList, Consumer<Entity> entityConsumer) {
+    private void redirectEntityTick(EntityTickList tickList, Consumer<Entity> entityConsumer) {
         if (!PhysicsParallelConfig.isEnabled()) {
             tickList.forEach(entityConsumer);
             return;
         }
-        physicsParallel$tickEntitiesParallel(tickList, entityConsumer);
+        parallelTickEntities(tickList, entityConsumer);
     }
 
-    private void physicsParallel$tickEntitiesParallel(EntityTickList tickList, Consumer<Entity> entityConsumer) {
+    private void parallelTickEntities(EntityTickList tickList, Consumer<Entity> entityConsumer) {
         List<Entity> allEntities = new ArrayList<>();
-        List<Entity> heavyEntities = new ArrayList<>();
-        boolean lightParallel = PhysicsParallelConfig.isLightEntitiesParallel();
+        List<Entity> mobEntities = new ArrayList<>();
 
         tickList.forEach(entity -> {
             if (!entity.isRemoved()) {
                 allEntities.add(entity);
-                if (needsParallelTick(entity, lightParallel)) {
-                    heavyEntities.add(entity);
+                if (entity instanceof Mob) {
+                    mobEntities.add(entity);
                 }
             }
         });
 
-        int heavyCount = heavyEntities.size();
-        if (heavyCount < PhysicsParallelConfig.getMinParallelEntities()) {
-            for (Entity entity : allEntities) {
-                entityConsumer.accept(entity);
-            }
+        int mobCount = mobEntities.size();
+        if (mobCount < PhysicsParallelConfig.getMinParallelEntities()) {
+            allEntities.forEach(entityConsumer);
             return;
         }
 
+        ServerLevel level = (ServerLevel) (Object) this;
+
+        for (Entity e : allEntities) {
+            int cx = SectionPos.blockToSectionCoord(e.getBlockX());
+            int cz = SectionPos.blockToSectionCoord(e.getBlockZ());
+            level.getChunk(cx, cz);
+        }
+
         EntityGrid grid = new EntityGrid(allEntities);
+
         SafeLevelAccess.enterSafeZone();
         EntityGridManager.setActiveGrid(grid);
         try {
-            // Phase 1: tick light entities on main thread (grid provides consistent snapshot)
             for (Entity entity : allEntities) {
-                if (!needsParallelTick(entity, lightParallel)) {
+                if (!(entity instanceof Mob)) {
                     entityConsumer.accept(entity);
                 }
             }
 
-            // Phase 2: parallel tick heavy entities (grid provides consistent snapshot)
             ExecutorService pool = ParallelThreadPool.getPool("Physics");
-            int workers = Math.max(1, Math.min(heavyCount, ParallelThreadPool.getParallelism()));
-            int batchSize = (heavyCount + workers - 1) / workers;
+            int workers = Math.max(1, Math.min(mobCount, ParallelThreadPool.getParallelism()));
+            int batchSize = (mobCount + workers - 1) / workers;
 
             List<CompletableFuture<Void>> futures = new ArrayList<>(workers);
-            for (int w = 0; w < workers; w++) {
+
+            for (int w = 0; w < workers - 1; w++) {
                 final int from = w * batchSize;
-                final int to = Math.min(from + batchSize, heavyCount);
+                final int to = Math.min(from + batchSize, mobCount);
                 if (from >= to) break;
 
                 futures.add(CompletableFuture.runAsync(() -> {
-                    for (int i = from; i < to; i++) {
-                        try {
-                            entityConsumer.accept(heavyEntities.get(i));
-                        } catch (Exception e) {
-                            PhysicsParallelization.LOGGER.error(
-                                    "Error ticking entity {} in parallel worker",
-                                    heavyEntities.get(i), e);
+                    SafeLevelAccess.enterSafeZone();
+                    try {
+                        for (int i = from; i < to; i++) {
+                            Entity entity = mobEntities.get(i);
+                            try {
+                                entityConsumer.accept(entity);
+                            } catch (Exception e) {
+                                PhysicsParallelization.LOGGER.error(
+                                        "Error ticking entity {} in parallel worker",
+                                        entity, e);
+                            }
                         }
+                    } finally {
+                        SafeLevelAccess.leaveSafeZone();
                     }
                 }, pool));
             }
-            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+
+            int mainFrom = (workers - 1) * batchSize;
+            int mainTo = Math.min(mainFrom + batchSize, mobCount);
+            for (int i = mainFrom; i < mainTo; i++) {
+                entityConsumer.accept(mobEntities.get(i));
+            }
+
+            for (CompletableFuture<Void> f : futures) {
+                f.join();
+            }
         } finally {
             EntityGridManager.setActiveGrid(null);
             SafeLevelAccess.leaveSafeZone();
         }
-    }
-
-    private static boolean needsParallelTick(Entity entity, boolean lightParallel) {
-        if (lightParallel) return true;
-        return entity instanceof Mob;
     }
 }
