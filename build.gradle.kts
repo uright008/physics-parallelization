@@ -8,6 +8,17 @@ group = providers.gradleProperty("maven_group").get()
 
 repositories {
     mavenLocal()
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = "Modrinth"
+                url = uri("https://api.modrinth.com/maven")
+            }
+        }
+        filter {
+            includeGroup("maven.modrinth")
+        }
+    }
 }
 
 loom {
@@ -21,7 +32,7 @@ loom {
 dependencies {
     minecraft("com.mojang:minecraft:${providers.gradleProperty("minecraft_version").get()}")
 
-    // parallel-core (local: publishToMavenLocal first)
+    // parallel-core — prefer local maven, fallback to Modrinth
     implementation("io.github.uright008.pc:parallel-core:${providers.gradleProperty("parallel_core_version").get()}")
     implementation("net.fabricmc:fabric-loader:${providers.gradleProperty("loader_version").get()}")
     implementation("net.fabricmc.fabric-api:fabric-api:${providers.gradleProperty("fabric_api_version").orElse("0.148.0+26.1.2").get()}")
