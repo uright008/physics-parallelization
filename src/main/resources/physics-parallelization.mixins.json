@@ -3,7 +3,8 @@
 	"package": "io.github.uright008.pp.mixin",
 	"compatibilityLevel": "JAVA_25",
 	"mixins": [
-		"ServerLevelMixin"
+		"LivingEntityAiStepMixin",
+		"ServerLevelEntityTickMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
