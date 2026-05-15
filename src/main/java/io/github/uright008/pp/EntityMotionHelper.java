@@ -3,11 +3,11 @@ package io.github.uright008.pp;
 import io.github.uright008.pc.ParallelThreadPool;
 import io.github.uright008.pc.SafeLevelAccess;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
@@ -47,7 +47,7 @@ public final class EntityMotionHelper {
         BATCH.add(new CapturedEntity(entity, travelInput));
     }
 
-    public static void flush(Level level) {
+    public static void flush(ServerLevel level) {
         if (BATCH.isEmpty()) return;
 
         List<CapturedEntity> batch;
@@ -77,6 +77,13 @@ public final class EntityMotionHelper {
         }
 
         executePhase2(plans);
+
+        // Global SAP-based entity push (replaces per-entity pushEntities)
+        List<LivingEntity> pushed = new ArrayList<>(plans.size());
+        for (EntityMotionPlan plan : plans) {
+            if (plan.entity().isAlive()) pushed.add(plan.entity());
+        }
+        EntityPushSAP.pushAll(level, pushed);
     }
 
     // ── Phase 1: parallel moveRelative + climbable ─
