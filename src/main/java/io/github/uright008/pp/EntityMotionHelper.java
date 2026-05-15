@@ -1,13 +1,11 @@
 package io.github.uright008.pp;
 
-import io.github.uright008.pc.EntityGrid;
 import io.github.uright008.pc.EntityGridManager;
 import io.github.uright008.pc.ParallelThreadPool;
 import io.github.uright008.pc.SafeLevelAccess;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.player.Player;
@@ -76,18 +74,7 @@ public final class EntityMotionHelper {
                 SafeLevelAccess.leaveSafeZone();
             }
         } else {
-            // Build entity grid snapshot — makes getEntities() safe during Phase 1
-            List<Entity> gridEntities = new ArrayList<>(batch.size());
-            for (CapturedEntity ce : batch) {
-                gridEntities.add(ce.entity);
-            }
-            EntityGrid grid = new EntityGrid(gridEntities);
-            EntityGridManager.setActiveGrid(grid);
-            try {
-                plans = computePhase1Parallel(batch);
-            } finally {
-                EntityGridManager.setActiveGrid(null);
-            }
+            plans = computePhase1Parallel(batch);
         }
 
         executePhase2(plans);
@@ -98,6 +85,9 @@ public final class EntityMotionHelper {
             if (plan.entity().isAlive()) pushed.add(plan.entity());
         }
         EntityPushSAP.pushAll(level, pushed);
+
+        // Clear entity grid now that all entity processing is complete
+        EntityGridManager.setActiveGrid(null);
     }
 
     // ── Phase 1: parallel moveRelative + climbable ─
