@@ -1,7 +1,7 @@
-package io.github.uright008.pp;
+package com.github.uright008.pp;
 
 import com.google.gson.JsonObject;
-import io.github.uright008.pc.ParallelConfig;
+import com.github.uright008.pc.ParallelConfig;
 
 public final class PhysicsParallelConfig extends ParallelConfig {
 

@@ -1,7 +1,7 @@
-package io.github.uright008.pp.mixin;
+package com.github.uright008.pp.mixin;
 
-import io.github.uright008.pp.EntityMotionHelper;
-import io.github.uright008.pp.PhysicsParallelConfig;
+import com.github.uright008.pp.EntityMotionHelper;
+import com.github.uright008.pp.PhysicsParallelConfig;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.util.profiling.Profiler;

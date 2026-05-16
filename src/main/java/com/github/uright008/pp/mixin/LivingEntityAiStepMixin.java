@@ -1,7 +1,7 @@
-package io.github.uright008.pp.mixin;
+package com.github.uright008.pp.mixin;
 
-import io.github.uright008.pp.EntityMotionHelper;
-import io.github.uright008.pp.PhysicsParallelConfig;
+import com.github.uright008.pp.EntityMotionHelper;
+import com.github.uright008.pp.PhysicsParallelConfig;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;

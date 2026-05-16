@@ -1,8 +1,8 @@
-package io.github.uright008.pp.mixin;
+package com.github.uright008.pp.mixin;
 
-import io.github.uright008.pc.EntityGrid;
-import io.github.uright008.pc.EntityGridManager;
-import io.github.uright008.pp.PhysicsParallelConfig;
+import com.github.uright008.pc.EntityGrid;
+import com.github.uright008.pc.EntityGridManager;
+import com.github.uright008.pp.PhysicsParallelConfig;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.entity.EntityTickList;

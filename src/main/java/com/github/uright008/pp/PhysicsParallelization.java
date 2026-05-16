@@ -1,6 +1,6 @@
-package io.github.uright008.pp;
+package com.github.uright008.pp;
 
-import io.github.uright008.pc.command.ParallelCommand;
+import com.github.uright008.pc.command.ParallelCommand;
 import net.fabricmc.api.ModInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

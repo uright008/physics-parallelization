@@ -1,4 +1,4 @@
-package io.github.uright008.pp;
+package com.github.uright008.pp;
 
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;

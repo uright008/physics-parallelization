@@ -1,8 +1,8 @@
-package io.github.uright008.pp;
+package com.github.uright008.pp;
 
-import io.github.uright008.pc.EntityGridManager;
-import io.github.uright008.pc.ParallelThreadPool;
-import io.github.uright008.pc.SafeLevelAccess;
+import com.github.uright008.pc.EntityGridManager;
+import com.github.uright008.pc.ParallelThreadPool;
+import com.github.uright008.pc.SafeLevelAccess;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;

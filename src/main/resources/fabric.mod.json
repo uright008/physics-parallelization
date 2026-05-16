@@ -11,7 +11,7 @@
 	"environment": "server",
 	"entrypoints": {
 		"main": [
-			"io.github.uright008.pp.PhysicsParallelization"
+          "com.github.uright008.pp.PhysicsParallelization"
 		]
 	},
 	"mixins": [

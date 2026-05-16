@@ -1,10 +1,10 @@
-package io.github.uright008.pp;
+package com.github.uright008.pp;
 
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
-import io.github.uright008.pc.ParallelThreadPool;
-import io.github.uright008.pc.command.ParallelSubCommand;
+import com.github.uright008.pc.ParallelThreadPool;
+import com.github.uright008.pc.command.ParallelSubCommand;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;

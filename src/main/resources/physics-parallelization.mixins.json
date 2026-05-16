@@ -1,11 +1,11 @@
 {
 	"required": true,
-	"package": "io.github.uright008.pp.mixin",
+	"package": "com.github.uright008.pp.mixin",
 	"compatibilityLevel": "JAVA_25",
 	"mixins": [
-		"LivingEntityAiStepMixin",
-		"ServerLevelEntityTickMixin",
-		"EntityTickGridMixin"
+      "LivingEntityAiStepMixin",
+      "ServerLevelEntityTickMixin",
+      "EntityTickGridMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
